@@ -80,7 +80,11 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        z1 = X.dot(W1) + b1
+
+        a1 = np.maximum(0, z1)
+
+        scores = a1.dot(W2) + b2
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -98,7 +102,16 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        scores -= np.max(scores, axis=1, keepdims=True)
+        exp_scores = np.exp(scores)
+        probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+
+        correct_logprobs = -np.log(probs[np.arange(N), y])
+        data_loss = np.sum(correct_logprobs) / N
+
+        reg_loss = reg * (np.sum(W1 * W1) + reg * np.sum(W2 * W2))
+
+        loss = data_loss + reg_loss
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -111,7 +124,18 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dscores = probs.copy()
+        dscores[np.arange(N), y] -= 1
+        dscores /= N
+
+        grads['W2'] = a1.T.dot(dscores) + 2 * reg * W2
+        grads['b2'] = np.sum(dscores, axis=0)
+
+        da1 = dscores.dot(W2.T)
+        dz1 = da1 * (z1 > 0)
+
+        grads['W1'] = X.T.dot(dz1) + 2 * reg * W1
+        grads['b1'] = np.sum(dz1, axis=0)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -139,7 +163,7 @@ class TwoLayerNet(object):
         - verbose: boolean; if true print progress during optimization.
         """
         num_train = X.shape[0]
-        iterations_per_epoch = max(num_train / batch_size, 1)
+        iterations_per_epoch = max(int(num_train / batch_size), 1)
 
         # Use SGD to optimize the parameters in self.model
         loss_history = []
@@ -156,7 +180,9 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            indices = np.random.choice(num_train, batch_size)
+            X_batch = X[indices]
+            y_batch = y[indices]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -172,7 +198,10 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            self.params['W1'] -= learning_rate * grads['W1']
+            self.params['b1'] -= learning_rate * grads['b1']
+            self.params['W2'] -= learning_rate * grads['W2']
+            self.params['b2'] -= learning_rate * grads['b2']
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -218,7 +247,11 @@ class TwoLayerNet(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        z1 = X.dot(self.params['W1']) + self.params['b1']
+        a1 = np.maximum(0, z1)
+        scores = a1.dot(self.params['W2']) + self.params['b2']
+
+        y_pred = np.argmax(scores, axis=1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
