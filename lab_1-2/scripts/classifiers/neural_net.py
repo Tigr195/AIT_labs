@@ -109,7 +109,7 @@ class TwoLayerNet(object):
         correct_logprobs = -np.log(probs[np.arange(N), y])
         data_loss = np.sum(correct_logprobs) / N
 
-        reg_loss = reg * (np.sum(W1 * W1) + reg * np.sum(W2 * W2))
+        reg_loss = reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
 
         loss = data_loss + reg_loss
 
